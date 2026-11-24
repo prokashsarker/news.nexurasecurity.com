@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/", label: "All Dispatches" },
@@ -55,9 +54,11 @@ export default function SiteHeader() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
           <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-900 text-white rounded-sm">
-              <ShieldCheck className="w-4 h-4" />
-            </span>
+            <img
+              src="/logo.png"
+              alt="Nexura Dispatch Logo"
+              className="w-9 h-9 object-contain shrink-0"
+            />
             <span className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-gray-950">
               Nexura Dispatch
             </span>
