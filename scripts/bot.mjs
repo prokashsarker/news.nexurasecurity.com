@@ -34,24 +34,31 @@ const CATEGORY_IMAGES = {
   saas: "/images/saas.svg",
 };
 
+// Rich official/editorial RSS feeds + targeted Google News feeds
 const SOURCES = [
+  {
+    country: "us",
+    category: "settlement",
+    label: "US Class Action Settlements",
+    url: "https://topclassactions.com/feed/",
+  },
+  {
+    country: "us",
+    category: "data_breach",
+    label: "Cybersecurity & Data Breaches",
+    url: "https://www.bleepingcomputer.com/feed/",
+  },
+  {
+    country: "us",
+    category: "data_breach",
+    label: "CISA Security Advisories",
+    url: "https://www.cisa.gov/cybersecurity-advisories/all.xml",
+  },
   {
     country: "us",
     category: "bank_alert",
     label: "US Retail Banking",
     url: 'https://news.google.com/rss/search?q=(Chase+OR+"Bank+of+America"+OR+"Wells+Fargo"+OR+Citibank)+(rate+OR+mortgage+OR+scam+OR+wire+OR+alert)&hl=en-US&gl=US&ceid=US:en',
-  },
-  {
-    country: "us",
-    category: "data_breach",
-    label: "US Data Breaches & CISA",
-    url: 'https://news.google.com/rss/search?q=("data+breach"+OR+"unauthorized+access"+OR+"phishing+alert")+(bank+OR+financial+OR+customers)&hl=en-US&gl=US&ceid=US:en',
-  },
-  {
-    country: "us",
-    category: "settlement",
-    label: "US Class Action Settlements",
-    url: 'https://news.google.com/rss/search?q=("class+action+settlement"+OR+"settlement+claim")+(bank+OR+"data+breach"+OR+fee+OR+deadline)&hl=en-US&gl=US&ceid=US:en',
   },
   {
     country: "uk",
@@ -85,6 +92,7 @@ const SOURCES = [
   },
 ];
 
+// Verified models on this project's Gemini API key with fallback
 const MODEL_CANDIDATES = [
   "gemini-3.5-flash",
   "gemini-3.8-flash",
@@ -94,52 +102,74 @@ const MODEL_CANDIDATES = [
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function extractPublisher(rawTitle) {
+  const parts = rawTitle.split(" - ");
+  if (parts.length > 1) {
+    const publisher = parts.pop().trim();
+    return { cleanTitle: parts.join(" - ").trim(), publisher };
+  }
+  return { cleanTitle: rawTitle.trim(), publisher: "" };
+}
+
 async function generateArticle(source, item) {
-  const rawText = (item.contentSnippet || item.content || item.title || "")
+  const { cleanTitle, publisher } = extractPublisher(item.title || "");
+  const rawText = (
+    item["content:encoded"] ||
+    item.contentSnippet ||
+    item.content ||
+    cleanTitle
+  )
     .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 3500);
+    .slice(0, 4000);
 
   const prompt = `
 You are a veteran beat reporter for Nexura Dispatch, an independent financial and security newsroom covering the US, UK, Canada, and Australia.
 
-Write a factual, human-sounding news report based strictly on the source material below.
+Write a factual, practical news report based on the source material below.
 
 Category: ${source.category}
 Country/Edition: ${source.country.toUpperCase()}
-Original Headline: ${item.title}
-Source Snippet: ${rawText}
+Original Headline: ${cleanTitle}
+Publisher Hint: ${publisher || source.label}
+Source Details: ${rawText}
 
-Strict Anti-AI & Editorial Rules:
-1. ZERO HALLUCINATION: Use ONLY facts present in the Original Headline and Source Snippet. Do NOT invent dollar amounts, dates, percentages, interest rates, or quotes.
-2. SOUND 100% HUMAN (NO AI TELLS):
-   - Start the opening sentence directly with the concrete news (the bank, company, dollar figure, or action). Never open with broad filler like "In an era where..." or "As digital banking grows...".
-   - Vary sentence length naturally: mix crisp 7-11 word sentences with 16-22 word sentences. Prefer active voice.
-   - STRICTLY FORBIDDEN WORDS: delve, tapestry, landscape, underscore, crucial, vital, pivotal, moreover, furthermore, additionally, in conclusion, it is worth noting, importantly, navigate, robust, comprehensive, seamlessly, foster, empower, ever-evolving, game-changer, testament, stay vigilant.
-   - Never use generic headings like "Overview", "Impact", or "Conclusion". Write specific, factual <h2> headings tied to the story (e.g., "What Account Holders Need to Check", "Filing Window and Payout Terms").
-3. STRUCTURE:
-   - "bank_or_entity": Specific bank, company, or agency name (e.g., "Bank of America", "Nevro Corp.", "HSBC UK").
-   - "title": Tight, factual headline (max 95 chars, sentence/title case, no clickbait, no colons if avoidable).
-   - "summary": 1-2 plain, direct sentences (max 190 chars).
-   - "key_takeaways": 2 to 4 short, factual bullet strings.
-   - "content_html": 400-550 words using only <p>, <h2>, <ul>, <li>, and <strong> tags.
-4. RELEVANCE CHECK: If the Original Headline is off-topic (sports, celebrity, entertainment, or unrelated to banking, finance, cybersecurity, settlements, insurance, or SaaS), return ONLY {"skip": true}.
-5. Return ONLY valid JSON with keys: "title", "bank_or_entity", "summary", "key_takeaways", "content_html", "source_name".
+Strict Editorial & Anti-AI Rules:
+1. ZERO FABRICATION: Never invent fake dollar figures, fake claim deadlines, fake interest rates, or fake quotes. Stick strictly to the verified facts in the source. If the source snippet is brief, add genuinely helpful, factual consumer guidance (e.g., how customers verify official bank notices, standard steps to protect accounts, or what terms in the announcement mean) rather than repeating the headline.
+2. HUMAN NEWSROOM TONE:
+   - Open directly with the concrete news (the bank, company, agency, or action). Never start with "In today's digital world..." or "As cyber threats grow...".
+   - Mix crisp 8-12 word sentences with 16-22 word sentences. Use active voice.
+   - FORBIDDEN WORDS: delve, tapestry, landscape, underscore, crucial, vital, pivotal, moreover, furthermore, additionally, in conclusion, it is worth noting, importantly, navigate, robust, comprehensive, seamlessly, foster, empower, ever-evolving, game-changer, testament, stay vigilant.
+   - Use specific, story-driven <h2> headings (never generic "Overview" or "Conclusion").
+3. OUTPUT FIELDS:
+   - "bank_or_entity": Specific bank, company, or agency name (e.g., "Bank of America", "CISA", "HSBC UK").
+   - "title": Tight, factual headline (max 90 chars, no clickbait).
+   - "summary": 1-2 direct sentences summarizing the news (max 185 chars).
+   - "key_takeaways": 3 short, actionable bullet strings.
+   - "content_html": 380-520 words formatted cleanly with ONLY <p>, <h2>, <ul>, <li>, and <strong> tags.
+   - "source_name": Name of the original reporting outlet or agency.
+4. RELEVANCE FILTER: If the story is unrelated to banking, personal finance, cybersecurity, data breaches, consumer settlements, insurance, or SaaS infrastructure, return ONLY {"skip": true}.
 `;
 
   let lastError;
   for (const modelName of MODEL_CANDIDATES) {
     try {
-      const model = genAI.getGenerativeModel({ model: modelName });
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.4,
+        },
+      });
       const result = await model.generateContent(prompt);
-      const rawJson = result.response
-        .text()
-        .replace(/```json|```/g, "")
-        .trim();
+      const rawJson = result.response.text().trim();
       return JSON.parse(rawJson);
     } catch (err) {
       lastError = err;
-      console.warn(`Model ${modelName} failed (${err.message.slice(0, 80)}), trying fallback...`);
+      console.warn(
+        `Model ${modelName} failed (${err.message.slice(0, 80)}), trying fallback...`
+      );
       await sleep(1500);
     }
   }
@@ -149,7 +179,7 @@ Strict Anti-AI & Editorial Rules:
 async function runBot() {
   let publishedCount = 0;
 
-  // Rotate sources slightly each day so all niches get balanced coverage
+  // Rotate sources daily so all niches get balanced coverage
   const dayOffset = new Date().getUTCDate() % SOURCES.length;
   const orderedSources = [
     ...SOURCES.slice(dayOffset),
@@ -189,7 +219,9 @@ async function runBot() {
 
         const baseSlug = slugify(article.title, { lower: true, strict: true });
         const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
-        const wordCount = article.content_html.replace(/<[^>]+>/g, " ").split(/\s+/).length;
+        const wordCount = article.content_html
+          .replace(/<[^>]+>/g, " ")
+          .split(/\s+/).length;
         const readTime = `${Math.max(2, Math.round(wordCount / 180))} min read`;
 
         const { error } = await supabase.from("posts").insert({
@@ -202,8 +234,9 @@ async function runBot() {
           key_takeaways: article.key_takeaways || [],
           content_html: article.content_html,
           source_url: item.link,
-          source_name: article.source_name || "Official Newsroom",
-          image_url: CATEGORY_IMAGES[source.category] || "/images/bank-alert.svg",
+          source_name: article.source_name || source.label,
+          image_url:
+            CATEGORY_IMAGES[source.category] || "/images/bank-alert.svg",
           read_time: readTime,
         });
 
