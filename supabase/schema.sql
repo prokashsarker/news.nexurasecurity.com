@@ -49,3 +49,8 @@ CREATE POLICY "Public read access for posts"
 CREATE POLICY "Public read access for swift_codes"
   ON swift_codes FOR SELECT
   USING (true);
+
+-- Grant permissions for Supabase API roles
+GRANT SELECT ON TABLE posts, swift_codes TO anon, authenticated;
+GRANT ALL ON TABLE posts, swift_codes TO service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO service_role;

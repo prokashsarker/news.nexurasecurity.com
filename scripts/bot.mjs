@@ -85,9 +85,16 @@ const SOURCES = [
   },
 ];
 
-async function generateArticle(source, item) {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const MODEL_CANDIDATES = [
+  "gemini-3.5-flash",
+  "gemini-3.8-flash",
+  "gemini-3.7-flash",
+  "gemini-3.5-flash-lite",
+];
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function generateArticle(source, item) {
   const rawText = (item.contentSnippet || item.content || item.title || "")
     .replace(/<[^>]+>/g, " ")
     .trim()
@@ -112,16 +119,27 @@ Strict Editorial Rules:
    - Write a 1-2 sentence "summary" (max 190 characters).
    - Provide 3 concise, factual "key_takeaways" strings.
    - Write "content_html" (400-600 words) using only <p>, <h2>, <ul>, <li>, and <strong> tags. Use 2 or 3 clear <h2> subheadings and practical bullet points for affected customers.
-4. Return ONLY valid JSON with keys: "title", "bank_or_entity", "summary", "key_takeaways", "content_html", "source_name".
+4. RELEVANCE CHECK: If the Original Headline is clearly off-topic (e.g., sports, celebrity, entertainment, or unrelated to banking, finance, cybersecurity, settlements, insurance, or SaaS), return ONLY {"skip": true}.
+5. Return ONLY valid JSON with keys: "title", "bank_or_entity", "summary", "key_takeaways", "content_html", "source_name".
 `;
 
-  const result = await model.generateContent(prompt);
-  const rawJson = result.response
-    .text()
-    .replace(/```json|```/g, "")
-    .trim();
-
-  return JSON.parse(rawJson);
+  let lastError;
+  for (const modelName of MODEL_CANDIDATES) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(prompt);
+      const rawJson = result.response
+        .text()
+        .replace(/```json|```/g, "")
+        .trim();
+      return JSON.parse(rawJson);
+    } catch (err) {
+      lastError = err;
+      console.warn(`Model ${modelName} failed (${err.message.slice(0, 80)}), trying fallback...`);
+      await sleep(1500);
+    }
+  }
+  throw lastError;
 }
 
 async function runBot() {
@@ -156,6 +174,10 @@ async function runBot() {
 
         console.log(`[${source.label}] Generating: ${item.title}`);
         const article = await generateArticle(source, item);
+        if (article?.skip) {
+          console.log(`Skipped off-topic item: ${item.title}`);
+          continue;
+        }
 
         const baseSlug = slugify(article.title, { lower: true, strict: true });
         const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
@@ -186,6 +208,7 @@ async function runBot() {
         console.log(
           `Published (${publishedCount}/${MAX_POSTS_PER_RUN}): ${article.title}`
         );
+        break; // Move to next niche/country source for diverse daily coverage
       }
     } catch (err) {
       console.error(`Error processing ${source.label}:`, err.message);
