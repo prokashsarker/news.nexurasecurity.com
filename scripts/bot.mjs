@@ -217,7 +217,9 @@ async function runBot() {
           continue;
         }
 
-        const baseSlug = slugify(article.title, { lower: true, strict: true });
+        const baseSlug =
+          slugify(article.title, { lower: true, strict: true }) ||
+          "nexura-alert";
         const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
         const wordCount = article.content_html
           .replace(/<[^>]+>/g, " ")
@@ -231,7 +233,9 @@ async function runBot() {
           country: source.country,
           bank_or_entity: article.bank_or_entity || source.label,
           summary: article.summary,
-          key_takeaways: article.key_takeaways || [],
+          key_takeaways: Array.isArray(article.key_takeaways)
+            ? article.key_takeaways
+            : [],
           content_html: article.content_html,
           source_url: item.link,
           source_name: article.source_name || source.label,
