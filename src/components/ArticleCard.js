@@ -64,28 +64,37 @@ export default function ArticleCard({ post, featured = false }) {
   }
 
   return (
-    <article className="bg-white border border-gray-200 rounded-sm p-5 flex flex-col justify-between hover:border-gray-300 transition-colors">
+    <article className="bg-white border border-gray-200 rounded-sm overflow-hidden flex flex-col justify-between hover:border-gray-300 transition-colors">
       <div>
-        <div className="flex items-center justify-between gap-2 text-xs mb-2.5">
-          <span
-            className={`px-2 py-0.5 font-semibold border rounded-sm ${category.accent}`}
-          >
-            {category.shortLabel}
-          </span>
-          <span className="font-mono text-gray-500 uppercase text-[11px]">
-            {country.short}
-          </span>
+        <Link href={href} className="block bg-slate-900 aspect-[16/9] overflow-hidden border-b border-gray-100">
+          <img
+            src={post.image_url || "/images/bank-alert.svg"}
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+        </Link>
+        <div className="p-5">
+          <div className="flex items-center justify-between gap-2 text-xs mb-2.5">
+            <span
+              className={`px-2 py-0.5 font-semibold border rounded-sm ${category.accent}`}
+            >
+              {category.shortLabel}
+            </span>
+            <span className="font-mono text-gray-500 uppercase text-[11px]">
+              {country.short}
+            </span>
+          </div>
+          <h3 className="font-serif text-xl font-bold text-gray-950 leading-snug">
+            <Link href={href} className="hover:underline decoration-1 underline-offset-4">
+              {post.title}
+            </Link>
+          </h3>
+          <p className="text-gray-600 text-sm mt-2 leading-relaxed line-clamp-3">
+            {post.summary}
+          </p>
         </div>
-        <h3 className="font-serif text-xl font-bold text-gray-950 leading-snug">
-          <Link href={href} className="hover:underline decoration-1 underline-offset-4">
-            {post.title}
-          </Link>
-        </h3>
-        <p className="text-gray-600 text-sm mt-2 leading-relaxed line-clamp-3">
-          {post.summary}
-        </p>
       </div>
-      <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+      <div className="px-5 pb-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
         <span className="truncate max-w-[180px]">{post.bank_or_entity}</span>
         <span>{formatDispatchDate(post.created_at)}</span>
       </div>
