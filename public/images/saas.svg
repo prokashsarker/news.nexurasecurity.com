@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#0F172A"/>
+  <path d="M0 520 H1200 M0 420 H1200 M0 320 H1200 M0 220 H1200 M0 120 H1200" stroke="#1E293B" stroke-width="1"/>
+  <rect x="110" y="130" width="980" height="370" rx="4" fill="#020617" stroke="#334155" stroke-width="1.5"/>
+  <rect x="160" y="165" width="215" height="28" rx="2" fill="#334155"/>
+  <text x="176" y="184" fill="#F8FAFC" font-family="sans-serif" font-size="13" font-weight="700" letter-spacing="1.5">SAAS &amp; CLOUD STATUS</text>
+  <circle cx="176" cy="285" r="8" fill="#22C55E"/>
+  <text x="200" y="291" fill="#E2E8F0" font-family="monospace" font-size="17">EDGE ROUTING &amp; PAYMENT GATEWAY TELEMETRY</text>
+  <circle cx="176" cy="340" r="8" fill="#F59E0B"/>
+  <text x="200" y="346" fill="#CBD5E1" font-family="monospace" font-size="16">INCIDENT POSTMORTEMS &amp; ENTERPRISE PATCH GUIDANCE</text>
+  <text x="160" y="465" fill="#94A3B8" font-family="monospace" font-size="15">NEXURA DISPATCH • CLOUD INFRASTRUCTURE &amp; SAAS</text>
+</svg>

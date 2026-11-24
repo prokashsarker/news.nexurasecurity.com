@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#18181B"/>
+  <path d="M0 520 H1200 M0 420 H1200 M0 320 H1200 M0 220 H1200 M0 120 H1200" stroke="#27272A" stroke-width="1"/>
+  <path d="M200 0 V630 M400 0 V630 M600 0 V630 M800 0 V630 M1000 0 V630" stroke="#27272A" stroke-width="1"/>
+  <rect x="110" y="130" width="980" height="370" rx="4" fill="#09090B" stroke="#3F3F46" stroke-width="1.5"/>
+  <rect x="160" y="165" width="195" height="28" rx="2" fill="#991B1B"/>
+  <text x="176" y="184" fill="#FEF2F2" font-family="sans-serif" font-size="13" font-weight="700" letter-spacing="1.5">SECURITY ADVISORY</text>
+  <rect x="160" y="250" width="880" height="145" rx="3" fill="#18181B" stroke="#27272A"/>
+  <text x="190" y="295" fill="#F87171" font-family="monospace" font-size="18">STATUS: UNAUTHORIZED ACCESS / PHISHING BULLETIN</text>
+  <text x="190" y="335" fill="#A1A1AA" font-family="monospace" font-size="15">VERIFICATION: REGULATORY FILINGS &amp; CISA ADVISORIES</text>
+  <text x="190" y="368" fill="#71717A" font-family="monospace" font-size="14">ACTION: REVIEW ACCOUNT CREDENTIALS &amp; CREDIT FREEZE GUIDANCE</text>
+  <text x="160" y="465" fill="#A1A1AA" font-family="monospace" font-size="15">NEXURA DISPATCH • CYBER &amp; DATA BREACH DESK</text>
+</svg>
