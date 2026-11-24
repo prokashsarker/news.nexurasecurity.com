@@ -1,4 +1,5 @@
 import Link from "next/link";
+import MobileNavDrawer from "./MobileNavDrawer";
 
 const NAV_ITEMS = [
   { href: "/", label: "All Dispatches" },
@@ -19,9 +20,9 @@ const REGION_LINKS = [
 
 export default function SiteHeader() {
   return (
-    <header className="bg-white border-b border-gray-200">
-      {/* Top utility bar */}
-      <div className="border-b border-gray-100 bg-[#f5f4f0]">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-40 md:static">
+      {/* Desktop Top Utility Bar */}
+      <div className="hidden md:block border-b border-gray-100 bg-[#f5f4f0]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-8 flex items-center justify-between text-xs text-gray-600">
           <div className="flex items-center gap-3">
             <span className="font-mono text-[11px] uppercase tracking-wider text-gray-500">
@@ -39,7 +40,7 @@ export default function SiteHeader() {
               ))}
             </nav>
           </div>
-          <div className="hidden sm:flex items-center gap-4">
+          <div className="flex items-center gap-4">
             <Link href="/about" className="hover:text-gray-900 transition-colors">
               Editorial Standards
             </Link>
@@ -51,34 +52,38 @@ export default function SiteHeader() {
       </div>
 
       {/* Masthead */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-        <div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 md:py-5 flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
             <img
               src="/logo.png"
               alt="Nexura Dispatch Logo"
-              className="w-9 h-9 object-contain shrink-0"
+              className="w-8 h-8 md:w-9 md:h-9 object-contain shrink-0"
             />
-            <span className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-gray-950">
+            <span className="font-serif text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-950 truncate">
               Nexura Dispatch
             </span>
           </Link>
-          <p className="text-xs text-gray-500 mt-1 tracking-wide">
+          <p className="hidden sm:block text-xs text-gray-500 mt-1 tracking-wide">
             Independent Financial Advisories, Breach Intelligence &amp; Consumer Claims
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500 font-mono">
+
+        <div className="hidden md:flex items-center gap-2 text-xs text-gray-500 font-mono">
           <span className="inline-block w-2 h-2 rounded-full bg-emerald-600" />
           <span>US • UK • CA • AU COVERAGE</span>
         </div>
+
+        {/* Mobile Side Menu Button & Drawer */}
+        <MobileNavDrawer navItems={NAV_ITEMS} regionLinks={REGION_LINKS} />
       </div>
 
-      {/* Primary Category Navigation */}
-      <div className="border-t border-gray-200 bg-white">
+      {/* Desktop Primary Category Navigation */}
+      <div className="hidden md:block border-t border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <nav
             aria-label="Primary Categories"
-            className="flex items-center gap-6 overflow-x-auto py-3 text-sm font-medium text-gray-700 whitespace-nowrap"
+            className="flex items-center gap-6 py-3 text-sm font-medium text-gray-700"
           >
             {NAV_ITEMS.map((item) => (
               <Link
