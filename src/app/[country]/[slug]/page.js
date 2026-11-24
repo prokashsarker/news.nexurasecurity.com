@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ExternalLink, AlertTriangle } from "lucide-react";
 import { getPostBySlug, getPosts } from "@/lib/data";
 import { CATEGORIES, COUNTRIES } from "@/lib/seed-data";
-import { formatDispatchDate } from "@/components/ArticleCard";
+import { DESK_BYLINES, formatDispatchDate } from "@/components/ArticleCard";
 import AdSlot from "@/components/AdSlot";
 
 export async function generateStaticParams() {
@@ -32,12 +32,27 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function ArticleDetailPage({ params }) {
+  return (
+    <Suspense
+      fallback={
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-12 text-sm text-gray-500">
+          Loading dispatch...
+        </main>
+      }
+    >
+      <ArticleDetailContent params={params} />
+    </Suspense>
+  );
+}
+
+async function ArticleDetailContent({ params }) {
   const { country, slug } = await params;
   const post = await getPostBySlug(country, slug);
   if (!post) return notFound();
 
   const category = CATEGORIES[post.category] || CATEGORIES.bank_alert;
   const countryInfo = COUNTRIES[post.country] || COUNTRIES.global;
+  const deskName = DESK_BYLINES[post.category] || "Nexura Research Desk";
   const related = (await getPosts({ category: post.category, limit: 4 }))
     .filter((p) => p.slug !== post.slug)
     .slice(0, 3);
@@ -53,7 +68,7 @@ export default async function ArticleDetailPage({ params }) {
     dateModified: post.created_at,
     author: {
       "@type": "Organization",
-      name: "Nexura Research Desk",
+      name: deskName,
     },
     publisher: {
       "@type": "Organization",
@@ -110,7 +125,7 @@ export default async function ArticleDetailPage({ params }) {
 
           <div className="mt-5 pb-5 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
             <span>
-              By <strong className="text-gray-800">Nexura Research Desk</strong>{" "}
+              By <strong className="text-gray-800">{deskName}</strong>{" "}
               • Published {formatDispatchDate(post.created_at)}
             </span>
             <span className="font-mono">{post.read_time || "3 min read"}</span>

@@ -101,25 +101,29 @@ async function generateArticle(source, item) {
     .slice(0, 3500);
 
   const prompt = `
-You are a senior financial and cybersecurity reporter writing for Nexura Dispatch, an independent newsroom covering US, UK, Canadian, and Australian banking, breaches, settlements, insurance, and SaaS.
+You are a veteran beat reporter for Nexura Dispatch, an independent financial and security newsroom covering the US, UK, Canada, and Australia.
 
-Rewrite the following dispatch into a crisp, authoritative, human-sounding news report.
+Write a factual, human-sounding news report based strictly on the source material below.
 
 Category: ${source.category}
 Country/Edition: ${source.country.toUpperCase()}
 Original Headline: ${item.title}
 Source Snippet: ${rawText}
 
-Strict Editorial Rules:
-1. ZERO HALLUCINATION: Use only facts present in the Original Headline and Source Snippet. Do NOT invent dollar amounts, dates, percentages, interest rates, or quotes that are not in the source.
-2. NATURAL JOURNALISTIC TONE: Write like a Reuters or KrebsOnSecurity reporter. Never use AI clichés such as "In today's fast-paced digital landscape", "delve", "tapestry", "crucial to note", or "stay vigilant in an ever-evolving world".
+Strict Anti-AI & Editorial Rules:
+1. ZERO HALLUCINATION: Use ONLY facts present in the Original Headline and Source Snippet. Do NOT invent dollar amounts, dates, percentages, interest rates, or quotes.
+2. SOUND 100% HUMAN (NO AI TELLS):
+   - Start the opening sentence directly with the concrete news (the bank, company, dollar figure, or action). Never open with broad filler like "In an era where..." or "As digital banking grows...".
+   - Vary sentence length naturally: mix crisp 7-11 word sentences with 16-22 word sentences. Prefer active voice.
+   - STRICTLY FORBIDDEN WORDS: delve, tapestry, landscape, underscore, crucial, vital, pivotal, moreover, furthermore, additionally, in conclusion, it is worth noting, importantly, navigate, robust, comprehensive, seamlessly, foster, empower, ever-evolving, game-changer, testament, stay vigilant.
+   - Never use generic headings like "Overview", "Impact", or "Conclusion". Write specific, factual <h2> headings tied to the story (e.g., "What Account Holders Need to Check", "Filing Window and Payout Terms").
 3. STRUCTURE:
-   - Identify the specific bank, company, or agency in "bank_or_entity" (e.g., "JPMorgan Chase", "HSBC UK", "Cloudflare").
-   - Write a tight, factual "title" (max 95 characters, no clickbait).
-   - Write a 1-2 sentence "summary" (max 190 characters).
-   - Provide 3 concise, factual "key_takeaways" strings.
-   - Write "content_html" (400-600 words) using only <p>, <h2>, <ul>, <li>, and <strong> tags. Use 2 or 3 clear <h2> subheadings and practical bullet points for affected customers.
-4. RELEVANCE CHECK: If the Original Headline is clearly off-topic (e.g., sports, celebrity, entertainment, or unrelated to banking, finance, cybersecurity, settlements, insurance, or SaaS), return ONLY {"skip": true}.
+   - "bank_or_entity": Specific bank, company, or agency name (e.g., "Bank of America", "Nevro Corp.", "HSBC UK").
+   - "title": Tight, factual headline (max 95 chars, sentence/title case, no clickbait, no colons if avoidable).
+   - "summary": 1-2 plain, direct sentences (max 190 chars).
+   - "key_takeaways": 2 to 4 short, factual bullet strings.
+   - "content_html": 400-550 words using only <p>, <h2>, <ul>, <li>, and <strong> tags.
+4. RELEVANCE CHECK: If the Original Headline is off-topic (sports, celebrity, entertainment, or unrelated to banking, finance, cybersecurity, settlements, insurance, or SaaS), return ONLY {"skip": true}.
 5. Return ONLY valid JSON with keys: "title", "bank_or_entity", "summary", "key_takeaways", "content_html", "source_name".
 `;
 
@@ -176,6 +180,10 @@ async function runBot() {
         const article = await generateArticle(source, item);
         if (article?.skip) {
           console.log(`Skipped off-topic item: ${item.title}`);
+          continue;
+        }
+        if (!article?.title || !article?.content_html || !article?.summary) {
+          console.warn(`Incomplete article JSON for: ${item.title}`);
           continue;
         }
 

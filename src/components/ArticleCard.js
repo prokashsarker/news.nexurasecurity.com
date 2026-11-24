@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { CATEGORIES, COUNTRIES } from "@/lib/seed-data";
 
+export const DESK_BYLINES = {
+  bank_alert: "Retail Banking Desk",
+  data_breach: "Cyber & Breach Desk",
+  settlement: "Consumer Claims Desk",
+  insurance: "Insurance & Risk Desk",
+  saas: "Cloud & Infrastructure Desk",
+};
+
 export function formatDispatchDate(dateStr) {
   if (!dateStr) return "";
   try {
@@ -53,7 +61,7 @@ export default function ArticleCard({ post, featured = false }) {
             </div>
             <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
               <span>
-                By Nexura Research Desk • {formatDispatchDate(post.created_at)}
+                By {DESK_BYLINES[post.category] || "Nexura Research Desk"} • {formatDispatchDate(post.created_at)}
               </span>
               <span className="font-mono">{post.read_time || "3 min read"}</span>
             </div>
