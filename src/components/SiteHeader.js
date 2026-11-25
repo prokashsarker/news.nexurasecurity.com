@@ -56,8 +56,10 @@ export default function SiteHeader() {
         <div className="min-w-0">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
             <img
-              src="/logo.png"
+              src="/icon-48.png"
               alt="Nexura Dispatch Logo"
+              width={36}
+              height={36}
               className="w-8 h-8 md:w-9 md:h-9 object-contain shrink-0"
             />
             <span className="font-serif text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-950 truncate">

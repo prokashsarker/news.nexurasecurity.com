@@ -31,10 +31,14 @@ export default function LoanCalculator() {
 
       <div className="space-y-3 text-sm">
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="loan-principal"
+            className="block text-xs font-medium text-gray-700 mb-1"
+          >
             Loan Amount ($)
           </label>
           <input
+            id="loan-principal"
             type="number"
             min="10000"
             step="5000"
@@ -46,10 +50,14 @@ export default function LoanCalculator() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="loan-rate"
+              className="block text-xs font-medium text-gray-700 mb-1"
+            >
               Interest Rate (%)
             </label>
             <input
+              id="loan-rate"
               type="number"
               min="0.1"
               max="25"
@@ -60,10 +68,14 @@ export default function LoanCalculator() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="loan-years"
+              className="block text-xs font-medium text-gray-700 mb-1"
+            >
               Term (Years)
             </label>
             <select
+              id="loan-years"
               value={years}
               onChange={(e) => setYears(Number(e.target.value))}
               className="w-full border border-gray-300 rounded-sm px-3 py-1.5 text-sm font-mono bg-white focus:outline-none focus:border-slate-900"

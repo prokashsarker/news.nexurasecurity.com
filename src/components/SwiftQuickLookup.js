@@ -41,6 +41,7 @@ export default function SwiftQuickLookup({ codes = [] }) {
         <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
         <input
           type="text"
+          aria-label="Search bank or SWIFT code"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search bank or SWIFT (e.g. Chase, HSBC)..."

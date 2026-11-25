@@ -13,7 +13,7 @@ export default function SiteFooter() {
             breaches, consumer class-action settlements, insurance underwriting
             shifts, and cloud risk across North America, the UK, and Australia.
           </p>
-          <p className="text-xs text-slate-500 mt-4 leading-relaxed max-w-md">
+          <p className="text-xs text-slate-300 mt-4 leading-relaxed max-w-md">
             Disclaimer: Nexura Dispatch is an independent informational portal
             and is not affiliated with any bank, court, or government agency.
             Always confirm rates, settlement deadlines, and wire instructions
@@ -89,7 +89,7 @@ export default function SiteFooter() {
       </div>
 
       <div className="border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-300 gap-2">
           <span>
             &copy; 2026 Nexura Dispatch (news.nexurasecurity.com). All rights reserved.
           </span>

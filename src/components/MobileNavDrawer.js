@@ -35,8 +35,10 @@ export default function MobileNavDrawer({ navItems, regionLinks }) {
             <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between bg-[#f7f6f2]">
               <div className="flex items-center gap-2">
                 <img
-                  src="/logo.png"
+                  src="/icon-48.png"
                   alt="Nexura Dispatch"
+                  width={28}
+                  height={28}
                   className="w-7 h-7 object-contain"
                 />
                 <span className="font-serif text-lg font-bold text-gray-950">

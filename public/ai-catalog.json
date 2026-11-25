@@ -1,0 +1,17 @@
+{
+  "name": "Nexura Dispatch",
+  "description": "Independent reporting and advisories covering banking updates, data breaches, consumer settlements, insurance, SaaS risk, and SWIFT/BIC wire directories.",
+  "url": "https://news.nexurasecurity.com",
+  "resources": [
+    {
+      "name": "XML Sitemap",
+      "url": "https://news.nexurasecurity.com/sitemap.xml",
+      "type": "application/xml"
+    },
+    {
+      "name": "SWIFT / BIC Directory",
+      "url": "https://news.nexurasecurity.com/swift",
+      "type": "text/html"
+    }
+  ]
+}
