@@ -2,8 +2,12 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ExternalLink, AlertTriangle } from "lucide-react";
-import { getPostBySlug, getPosts } from "@/lib/data";
-import { CATEGORIES, COUNTRIES } from "@/lib/seed-data";
+import { getPostBySlug, getPosts, getSwiftCodes } from "@/lib/data";
+import {
+  CATEGORIES,
+  COUNTRIES,
+  findMatchingSwiftForPost,
+} from "@/lib/seed-data";
 import { DESK_BYLINES, formatDispatchDate } from "@/components/ArticleCard";
 import AdSlot from "@/components/AdSlot";
 
@@ -77,9 +81,12 @@ async function ArticleDetailContent({ params }) {
   const category = CATEGORIES[post.category] || CATEGORIES.bank_alert;
   const countryInfo = COUNTRIES[post.country] || COUNTRIES.global;
   const deskName = DESK_BYLINES[post.category] || "Nexura Research Desk";
-  const related = (await getPosts({ category: post.category, limit: 4 }))
-    .filter((p) => p.slug !== post.slug)
-    .slice(0, 3);
+  const [relatedRaw, allSwift] = await Promise.all([
+    getPosts({ category: post.category, limit: 4 }),
+    getSwiftCodes({ limit: 250 }),
+  ]);
+  const related = relatedRaw.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const matchedSwift = findMatchingSwiftForPost(post, allSwift);
 
   const takeaways = Array.isArray(post.key_takeaways) ? post.key_takeaways : [];
 
@@ -262,6 +269,30 @@ async function ArticleDetailContent({ params }) {
                       {item.title}
                     </Link>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {matchedSwift.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-sm p-5">
+              <h3 className="font-serif text-base font-bold text-gray-950 mb-3">
+                Related Bank Wire Codes
+              </h3>
+              <div className="divide-y divide-gray-100">
+                {matchedSwift.map((item) => (
+                  <Link
+                    key={item.slug}
+                    href={`/swift/${item.slug}`}
+                    className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-2 hover:underline"
+                  >
+                    <span className="text-xs font-medium text-gray-900 truncate">
+                      {item.bank_name}
+                    </span>
+                    <span className="font-mono text-xs font-bold text-teal-800 shrink-0">
+                      {item.swift_code}
+                    </span>
+                  </Link>
                 ))}
               </div>
             </div>

@@ -1,8 +1,11 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getSwiftBySlug, getSwiftCodes } from "@/lib/data";
-import { getCountryDisplayName } from "@/lib/seed-data";
+import { getSwiftBySlug, getSwiftCodes, getPosts } from "@/lib/data";
+import {
+  getCountryDisplayName,
+  findMatchingPostsForSwift,
+} from "@/lib/seed-data";
 import CopyButton from "@/components/CopyButton";
 import AdSlot from "@/components/AdSlot";
 
@@ -62,11 +65,15 @@ export default async function SwiftDetailPage({ params }) {
 
 async function SwiftDetailContent({ params }) {
   const { slug } = await params;
-  const data = await getSwiftBySlug(slug);
+  const [data, recentPosts] = await Promise.all([
+    getSwiftBySlug(slug),
+    getPosts({ limit: 40 }),
+  ]);
   if (!data) return notFound();
 
   const countryName = getCountryDisplayName(data.country);
   const guideHtml = data.guide_html || buildDynamicGuideHtml(data, countryName);
+  const relatedNews = findMatchingPostsForSwift(data, recentPosts);
 
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -151,6 +158,30 @@ async function SwiftDetailContent({ params }) {
           Note: Always confirm branch-specific wire instructions and intermediary
           bank requirements inside your online banking portal before sending funds.
         </div>
+
+        {relatedNews.length > 0 && (
+          <section className="mt-10 pt-8 border-t border-gray-200">
+            <h2 className="font-serif text-xl font-bold text-gray-950 mb-4">
+              Recent Banking &amp; Security Dispatches ({countryName})
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {relatedNews.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={`/${item.country}/${item.slug}`}
+                  className="p-4 border border-gray-200 bg-[#faf9f6] hover:border-gray-400 rounded-sm transition-colors block"
+                >
+                  <span className="font-mono text-[11px] uppercase text-gray-600">
+                    {item.bank_or_entity}
+                  </span>
+                  <h3 className="font-serif text-base font-bold text-gray-950 mt-1 leading-snug">
+                    {item.title}
+                  </h3>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </article>
     </main>
   );

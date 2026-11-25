@@ -93,6 +93,66 @@ export function resolveCountryCode(input) {
   return COUNTRY_SLUG_ALIASES[normalized] || normalized;
 }
 
+const STOP_WORDS = new Set([
+  "bank",
+  "banking",
+  "corporation",
+  "corp",
+  "group",
+  "limited",
+  "ltd",
+  "inc",
+  "plc",
+  "llc",
+  "national",
+  "association",
+  "the",
+  "and",
+  "for",
+  "of",
+  "in",
+  "us",
+  "uk",
+  "canada",
+  "australia",
+]);
+
+function extractEntityTokens(text) {
+  return (text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !STOP_WORDS.has(w));
+}
+
+export function findMatchingSwiftForPost(post, swiftCodes = []) {
+  const haystack = `${post?.bank_or_entity || ""} ${post?.title || ""}`.toLowerCase();
+  const matches = [];
+  for (const item of swiftCodes) {
+    const tokens = extractEntityTokens(item.bank_name);
+    if (tokens.some((t) => haystack.includes(t))) {
+      matches.push(item);
+      if (matches.length >= 3) break;
+    }
+  }
+  return matches;
+}
+
+export function findMatchingPostsForSwift(swift, posts = []) {
+  const tokens = extractEntityTokens(swift?.bank_name || "");
+  const directMatches = posts.filter((p) => {
+    const text = `${p.bank_or_entity || ""} ${p.title || ""}`.toLowerCase();
+    return tokens.some((t) => text.includes(t));
+  });
+  if (directMatches.length >= 3) return directMatches.slice(0, 4);
+
+  const seen = new Set(directMatches.map((p) => p.slug));
+  const countryFallbacks = posts.filter(
+    (p) => !seen.has(p.slug) && p.country === swift?.country
+  );
+  return [...directMatches, ...countryFallbacks].slice(0, 4);
+}
+
 export const SEED_POSTS = [
   {
     id: 1,
