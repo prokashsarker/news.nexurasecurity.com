@@ -33,14 +33,14 @@ export default function ArticleCard({ post, featured = false }) {
     return (
       <article className="bg-white border border-gray-200 rounded-sm overflow-hidden">
         <div className="grid md:grid-cols-12">
-          <div className="md:col-span-5 bg-slate-900 relative min-h-[220px]">
+          <div className="md:col-span-6 bg-slate-950 flex items-center justify-center">
             <img
               src={coverUrl}
               alt={post.title}
-              className="w-full h-full object-cover"
+              className="w-full aspect-[16/9] object-contain"
             />
           </div>
-          <div className="md:col-span-7 p-6 flex flex-col justify-between">
+          <div className="md:col-span-6 p-6 flex flex-col justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2 text-xs mb-3">
                 <span

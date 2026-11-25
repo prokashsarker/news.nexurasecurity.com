@@ -168,11 +168,11 @@ async function ArticleDetailContent({ params }) {
           </div>
 
           {/* Editorial Graphic */}
-          <div className="my-6 border border-gray-200 rounded-sm overflow-hidden bg-slate-900">
+          <div className="my-6 border border-gray-200 rounded-sm overflow-hidden bg-slate-950">
             <img
               src={ogImagePath}
               alt={post.title}
-              className="w-full h-auto max-h-[360px] object-cover"
+              className="w-full aspect-[16/9] object-contain"
             />
           </div>
 
