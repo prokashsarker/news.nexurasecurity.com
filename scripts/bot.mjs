@@ -266,8 +266,10 @@ async function runBot() {
         }
 
         const baseSlug =
-          slugify(article.title, { lower: true, strict: true }) ||
-          "nexura-alert";
+          slugify(article.title.replace(/\$/g, ""), {
+            lower: true,
+            strict: true,
+          }) || "nexura-alert";
         const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
         const wordCount = article.content_html
           .replace(/<[^>]+>/g, " ")

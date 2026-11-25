@@ -79,6 +79,53 @@ function toTitleCase(str) {
     .join(" ");
 }
 
+const POPULAR_BANK_KEYWORDS = [
+  "CAPITAL ONE",
+  "PNC",
+  "U.S. BANK",
+  "US BANK",
+  "TRUIST",
+  "GOLDMAN SACHS",
+  "MORGAN STANLEY",
+  "AMERICAN EXPRESS",
+  "NATWEST",
+  "SANTANDER",
+  "MONZO",
+  "STARLING",
+  "REVOLUT",
+  "NATIONWIDE",
+  "CIBC",
+  "NATIONAL BANK OF CANADA",
+  "SCOTIABANK",
+  "DESJARDINS",
+  "NATIONAL AUSTRALIA BANK",
+  "NAB",
+  "MACQUARIE",
+  "DEUTSCHE BANK",
+  "COMMERZBANK",
+  "BNP PARIBAS",
+  "SOCIETE GENERALE",
+  "ING",
+  "UBS",
+  "DBS",
+  "OCBC",
+  "UOB",
+  "EMIRATES NBD",
+  "FIRST ABU DHABI",
+  "HDFC",
+  "ICICI",
+  "STATE BANK OF INDIA",
+  "BRAC BANK",
+  "DUTCH-BANGLA",
+  "SONALI BANK",
+  "ISLAMI BANK",
+];
+
+function isPopularBank(bankName) {
+  const upper = (bankName || "").toUpperCase();
+  return POPULAR_BANK_KEYWORDS.some((kw) => upper.includes(kw));
+}
+
 async function importCountry(isoCode) {
   const url = `${BASE_RAW_URL}/${isoCode}.json`;
   console.log(`Fetching ${url}...`);
@@ -92,11 +139,17 @@ async function importCountry(isoCode) {
   const list = Array.isArray(json.list) ? json.list : [];
   const countrySlug = mapCountrySlug(isoCode);
 
-  // Prioritize primary 8-char / XXX head-office SWIFT codes first to avoid branch spam
-  const prioritized = [
-    ...list.filter((b) => !b.branch || (b.swift_code || "").endsWith("XXX") || (b.swift_code || "").length === 8),
-    ...list.filter((b) => b.branch && !(b.swift_code || "").endsWith("XXX") && (b.swift_code || "").length !== 8),
-  ];
+  // Prioritize popular retail banks + primary 8-char / XXX head-office SWIFT codes first
+  const isPrimary = (b) =>
+    !b.branch ||
+    (b.swift_code || "").endsWith("XXX") ||
+    (b.swift_code || "").length === 8;
+
+  const prioritized = [...list].sort((a, b) => {
+    const popDiff = Number(isPopularBank(b.bank)) - Number(isPopularBank(a.bank));
+    if (popDiff !== 0) return popDiff;
+    return Number(isPrimary(b)) - Number(isPrimary(a));
+  });
 
   // Fetch already-imported SWIFT codes for this country to avoid duplicates/conflicts
   const { data: existingRows } = await supabase
