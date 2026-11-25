@@ -25,6 +25,27 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 const MAX_POSTS_PER_RUN = 3;
+const INDEXNOW_KEY = "ece7c0b170374ce5842381bf986477f8";
+const SITE_HOST = "news.nexurasecurity.com";
+
+async function pingIndexNow(urls) {
+  if (!INDEXNOW_KEY || urls.length === 0) return;
+  try {
+    const res = await fetch("https://api.indexnow.org/indexnow", {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({
+        host: SITE_HOST,
+        key: INDEXNOW_KEY,
+        keyLocation: `https://${SITE_HOST}/${INDEXNOW_KEY}.txt`,
+        urlList: urls,
+      }),
+    });
+    console.log(`IndexNow ping status: ${res.status} (${urls.length} URLs)`);
+  } catch (err) {
+    console.warn("IndexNow ping failed:", err.message);
+  }
+}
 
 const CATEGORY_IMAGES = {
   bank_alert: "/images/bank-alert.png",
@@ -226,6 +247,7 @@ async function runBot() {
   }
 
   let publishedCount = todayCount ?? 0;
+  const newlyPublishedUrls = [];
 
   // Rotate sources daily so all niches get balanced coverage
   const dayOffset = extraCount > 0 ? 0 : new Date().getUTCDate() % SOURCES.length;
@@ -300,6 +322,9 @@ async function runBot() {
         }
 
         publishedCount++;
+        newlyPublishedUrls.push(
+          `https://${SITE_HOST}/${source.country}/${uniqueSlug}`
+        );
         console.log(
           `Published (${publishedCount}/${MAX_POSTS_PER_RUN}): ${article.title}`
         );
@@ -310,6 +335,7 @@ async function runBot() {
     }
   }
 
+  await pingIndexNow(newlyPublishedUrls);
   console.log(`Run complete. Total published: ${publishedCount}`);
 }
 
