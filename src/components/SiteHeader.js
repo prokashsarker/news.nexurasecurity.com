@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { href: "/", label: "All Dispatches" },
   { href: "/category/bank_alert", label: "Banking & Rates" },
   { href: "/category/data_breach", label: "Data Breaches" },
+  { href: "/category/web_security", label: "Web & WP Security" },
   { href: "/category/settlement", label: "Settlements" },
   { href: "/category/insurance", label: "Insurance" },
   { href: "/category/saas", label: "SaaS & Cloud" },

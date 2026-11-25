@@ -15,6 +15,14 @@ export const CATEGORIES = {
     description:
       "Active phishing campaigns, disclosed corporate data breaches, and critical financial security vulnerabilities.",
   },
+  web_security: {
+    id: "web_security",
+    label: "Web & WP Security",
+    shortLabel: "Web Security",
+    accent: "text-emerald-900 bg-emerald-50 border-emerald-200",
+    description:
+      "WordPress plugin vulnerabilities, zero-day web patches, malware advisories, and website hardening updates.",
+  },
   settlement: {
     id: "settlement",
     label: "Settlements",

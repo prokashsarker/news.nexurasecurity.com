@@ -29,6 +29,7 @@ const MAX_POSTS_PER_RUN = 3;
 const CATEGORY_IMAGES = {
   bank_alert: "/images/bank-alert.png",
   data_breach: "/images/data-breach.png",
+  web_security: "/images/web-security.png",
   settlement: "/images/settlement.png",
   insurance: "/images/insurance.png",
   saas: "/images/saas.png",
@@ -36,6 +37,30 @@ const CATEGORY_IMAGES = {
 
 // Rich official/editorial RSS feeds + targeted Google News feeds
 const SOURCES = [
+  {
+    country: "global",
+    category: "web_security",
+    label: "WordPress & Web Security",
+    url: "https://www.wordfence.com/feed/",
+  },
+  {
+    country: "global",
+    category: "web_security",
+    label: "Plugin Vulnerabilities & Patches",
+    url: "https://patchstack.com/feed/",
+  },
+  {
+    country: "us",
+    category: "data_breach",
+    label: "The Hacker News",
+    url: "https://feeds.feedburner.com/TheHackersNews",
+  },
+  {
+    country: "us",
+    category: "data_breach",
+    label: "SecurityWeek Cyber Alerts",
+    url: "https://www.securityweek.com/feed/",
+  },
   {
     country: "us",
     category: "settlement",
@@ -137,6 +162,7 @@ Source Details: ${rawText}
 
 Strict Editorial & Anti-AI Rules:
 1. ZERO FABRICATION: Never invent fake dollar figures, fake claim deadlines, fake interest rates, or fake quotes. Stick strictly to the verified facts in the source. If the source snippet is brief, add genuinely helpful, factual consumer guidance (e.g., how customers verify official bank notices, standard steps to protect accounts, or what terms in the announcement mean) rather than repeating the headline.
+2. ADSENSE SAFETY GUARD: Never include exploit code, attack payloads, shell commands, or instructions on how to perform a hack. Focus strictly on factual incident reporting, affected versions, and defensive patching or mitigation steps for site owners and users.
 2. HUMAN NEWSROOM TONE:
    - Open directly with the concrete news (the bank, company, agency, or action). Never start with "In today's digital world..." or "As cyber threats grow...".
    - Mix crisp 8-12 word sentences with 16-22 word sentences. Use active voice.

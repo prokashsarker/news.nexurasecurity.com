@@ -4,6 +4,7 @@ import { CATEGORIES, COUNTRIES } from "@/lib/seed-data";
 export const DESK_BYLINES = {
   bank_alert: "Retail Banking Desk",
   data_breach: "Cyber & Breach Desk",
+  web_security: "Web & WP Security Desk",
   settlement: "Consumer Claims Desk",
   insurance: "Insurance & Risk Desk",
   saas: "Cloud & Infrastructure Desk",
