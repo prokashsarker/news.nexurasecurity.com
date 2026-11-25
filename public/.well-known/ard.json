@@ -1,18 +1,31 @@
 {
-  "schema_version": "1.0",
-  "name": "Nexura Dispatch",
-  "description": "Independent reporting and advisories covering banking updates, data breaches, consumer settlements, insurance, SaaS risk, and SWIFT/BIC wire directories.",
-  "url": "https://news.nexurasecurity.com",
-  "resources": [
+  "specVersion": "0.91",
+  "publisher": "news.nexurasecurity.com",
+  "updatedAt": "2026-11-26T00:00:00Z",
+  "entries": [
     {
-      "name": "XML Sitemap",
-      "url": "https://news.nexurasecurity.com/sitemap.xml",
-      "type": "application/xml"
+      "identifier": "urn:air:news.nexurasecurity.com:directory:swift-codes",
+      "displayName": "Nexura International SWIFT / BIC Directory",
+      "type": "text/html",
+      "url": "https://news.nexurasecurity.com/swift",
+      "description": "Searchable directory of verified SWIFT/BIC wire transfer codes and routing instructions across US, UK, Canada, and Australia.",
+      "representativeQueries": [
+        "find SWIFT code for Chase Bank US",
+        "look up HSBC UK BIC wire transfer code"
+      ],
+      "tags": ["swift", "bic", "banking", "wire-transfer"]
     },
     {
-      "name": "SWIFT / BIC Directory",
-      "url": "https://news.nexurasecurity.com/swift",
-      "type": "text/html"
+      "identifier": "urn:air:news.nexurasecurity.com:feed:sitemap",
+      "displayName": "Nexura Dispatch XML Sitemap",
+      "type": "application/xml",
+      "url": "https://news.nexurasecurity.com/sitemap.xml",
+      "description": "Live index of banking advisories, data breach alerts, WordPress security patches, settlements, and SWIFT pages.",
+      "representativeQueries": [
+        "latest bank security alerts and data breaches",
+        "recent consumer class action settlement deadlines"
+      ],
+      "tags": ["news", "security", "banking", "sitemap"]
     }
   ]
 }
