@@ -54,6 +54,11 @@ export const metadata = {
       "max-video-preview": -1,
     },
   },
+  verification: {
+    other: {
+      "msvalidate.01": "5D44E0B622DD16FD73D3C4992285D3B6",
+    },
+  },
 };
 
 export default function RootLayout({ children }) {
