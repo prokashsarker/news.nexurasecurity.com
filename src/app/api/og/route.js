@@ -89,6 +89,7 @@ export async function GET(request) {
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
               <div
                 style={{
+                  display: "flex",
                   backgroundColor: theme.accent,
                   color: "#FFFFFF",
                   fontSize: "18px",
@@ -102,13 +103,14 @@ export async function GET(request) {
               </div>
               <div
                 style={{
+                  display: "flex",
                   color: "#CBD5E1",
                   fontSize: "20px",
                   fontFamily: "monospace",
                   letterSpacing: "1px",
                 }}
               >
-                {country} • {entity.toUpperCase()}
+                {`${country} • ${entity.toUpperCase()}`}
               </div>
             </div>
           </div>
