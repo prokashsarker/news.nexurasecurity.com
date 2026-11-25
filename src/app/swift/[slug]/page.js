@@ -1,12 +1,13 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSwiftBySlug, getSwiftCodes } from "@/lib/data";
-import { COUNTRIES } from "@/lib/seed-data";
+import { getCountryDisplayName } from "@/lib/seed-data";
 import CopyButton from "@/components/CopyButton";
 import AdSlot from "@/components/AdSlot";
 
 export async function generateStaticParams() {
-  const codes = await getSwiftCodes();
+  const codes = await getSwiftCodes({ limit: 100 });
   return codes.map((item) => ({ slug: item.slug }));
 }
 
@@ -16,20 +17,60 @@ export async function generateMetadata({ params }) {
   if (!data) return {};
   return {
     title: `${data.bank_name} SWIFT Code (${data.swift_code}) & Wire Guide`,
-    description: `Official SWIFT/BIC code ${data.swift_code} for ${data.bank_name} in ${data.city}. Includes routing details, wire fees, and transfer checklist.`,
+    description: `Official SWIFT/BIC code ${data.swift_code} for ${data.bank_name} in ${data.city}. Includes BIC breakdown, routing details, and wire transfer checklist.`,
   };
 }
 
+function buildDynamicGuideHtml(data, countryName) {
+  const code = (data.swift_code || "").toUpperCase();
+  const bankChars = code.slice(0, 4);
+  const countryChars = code.slice(4, 6);
+  const locationChars = code.slice(6, 8);
+  const branchChars = code.length === 11 ? code.slice(8, 11) : "XXX (Primary Office)";
+
+  return `
+    <h2>How to Use ${code} for International Wires</h2>
+    <p>When sending or receiving an international wire transfer with <strong>${data.bank_name}</strong> in ${data.city}, ${countryName}, provide the sending institution with the SWIFT/BIC code <strong>${code}</strong> alongside the beneficiary's full legal name and account number (or IBAN where applicable).</p>
+    <h2>SWIFT / BIC Code Structure Breakdown</h2>
+    <ul>
+      <li><strong>Bank Code (${bankChars}):</strong> Identifies ${data.bank_name} on the global SWIFT network.</li>
+      <li><strong>Country Code (${countryChars}):</strong> Represents ${countryName}.</li>
+      <li><strong>Location Code (${locationChars}):</strong> Designates the primary clearing hub (${data.city}).</li>
+      <li><strong>Branch Code (${branchChars}):</strong> Identifies the specific branch or head office.</li>
+    </ul>
+    <h2>Frequently Asked Questions</h2>
+    <h3>Should I use an 8-character or 11-character SWIFT code?</h3>
+    <p>If a transfer form requires 11 characters and your code is 8 characters, append <code>XXX</code> to target the institution's primary head office (${code.length === 8 ? code + "XXX" : code}).</p>
+    <h3>How long do international wires to ${data.bank_name} take?</h3>
+    <p>Most SWIFT transfers settle within 1 to 3 business days depending on intermediary correspondent banks, currency conversion cutoffs, and compliance screening.</p>
+  `;
+}
+
 export default async function SwiftDetailPage({ params }) {
+  return (
+    <Suspense
+      fallback={
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12 text-sm text-gray-600">
+          Loading SWIFT reference...
+        </main>
+      }
+    >
+      <SwiftDetailContent params={params} />
+    </Suspense>
+  );
+}
+
+async function SwiftDetailContent({ params }) {
   const { slug } = await params;
   const data = await getSwiftBySlug(slug);
   if (!data) return notFound();
 
-  const countryInfo = COUNTRIES[data.country] || COUNTRIES.us;
+  const countryName = getCountryDisplayName(data.country);
+  const guideHtml = data.guide_html || buildDynamicGuideHtml(data, countryName);
 
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-      <nav aria-label="Breadcrumb" className="text-xs text-gray-500 mb-6 flex gap-2">
+      <nav aria-label="Breadcrumb" className="text-xs text-gray-600 mb-6 flex flex-wrap gap-2">
         <Link href="/" className="hover:text-gray-900">
           Home
         </Link>
@@ -38,12 +79,16 @@ export default async function SwiftDetailPage({ params }) {
           SWIFT Directory
         </Link>
         <span>/</span>
-        <span className="text-gray-800 font-medium">{data.swift_code}</span>
+        <Link href={`/swift/country/${data.country}`} className="hover:text-gray-900">
+          {countryName}
+        </Link>
+        <span>/</span>
+        <span className="text-gray-900 font-medium">{data.swift_code}</span>
       </nav>
 
       <article className="bg-white border border-gray-200 rounded-sm p-6 sm:p-10">
         <span className="font-mono text-xs uppercase tracking-widest text-teal-800 bg-teal-50 border border-teal-200 px-2.5 py-0.5 rounded-sm">
-          {countryInfo.name} • Wire Reference
+          {countryName} • Wire Reference
         </span>
 
         <h1 className="font-serif text-3xl sm:text-4xl font-bold text-gray-950 mt-3">
@@ -76,12 +121,12 @@ export default async function SwiftDetailPage({ params }) {
           <div className="flex flex-wrap items-center justify-between border-b border-gray-200 pb-3 gap-2">
             <span className="text-gray-600 font-medium">City &amp; Country</span>
             <span className="text-gray-900">
-              {data.city}, {countryInfo.name}
+              {data.city}, {countryName}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center justify-between border-b border-gray-200 pb-3 gap-2">
-            <span className="text-gray-600 font-medium">Head Office Address</span>
+            <span className="text-gray-600 font-medium">Address / Branch</span>
             <span className="text-gray-900 text-right">{data.address}</span>
           </div>
 
@@ -99,10 +144,10 @@ export default async function SwiftDetailPage({ params }) {
 
         <div
           className="editorial-prose"
-          dangerouslySetInnerHTML={{ __html: data.guide_html }}
+          dangerouslySetInnerHTML={{ __html: guideHtml }}
         />
 
-        <div className="mt-8 pt-6 border-t border-gray-200 text-xs text-gray-500">
+        <div className="mt-8 pt-6 border-t border-gray-200 text-xs text-gray-600">
           Note: Always confirm branch-specific wire instructions and intermediary
           bank requirements inside your online banking portal before sending funds.
         </div>

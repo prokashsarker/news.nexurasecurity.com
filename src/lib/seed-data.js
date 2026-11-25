@@ -49,6 +49,42 @@ export const COUNTRIES = {
   global: { code: "global", name: "Global", short: "Global", currency: "USD" },
 };
 
+const regionDisplay = new Intl.DisplayNames(["en"], { type: "region" });
+
+export function getCountryDisplayName(code) {
+  const normalized = (code || "").toLowerCase();
+  if (COUNTRIES[normalized]) return COUNTRIES[normalized].name;
+  const iso = normalized === "uk" ? "GB" : normalized.toUpperCase();
+  try {
+    return regionDisplay.of(iso) || normalized.toUpperCase();
+  } catch {
+    return normalized.toUpperCase();
+  }
+}
+
+const COUNTRY_SLUG_ALIASES = {
+  "united-states": "us",
+  usa: "us",
+  "united-kingdom": "uk",
+  gb: "uk",
+  canada: "ca",
+  australia: "au",
+  germany: "de",
+  france: "fr",
+  netherlands: "nl",
+  switzerland: "ch",
+  singapore: "sg",
+  "united-arab-emirates": "ae",
+  uae: "ae",
+  india: "in",
+  bangladesh: "bd",
+};
+
+export function resolveCountryCode(input) {
+  const normalized = (input || "").toLowerCase().trim();
+  return COUNTRY_SLUG_ALIASES[normalized] || normalized;
+}
+
 export const SEED_POSTS = [
   {
     id: 1,

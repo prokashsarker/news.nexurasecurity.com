@@ -23,12 +23,12 @@ CREATE TABLE IF NOT EXISTS swift_codes (
   bank_name TEXT NOT NULL,
   swift_code TEXT NOT NULL,
   routing_number TEXT,
-  country TEXT NOT NULL CHECK (country IN ('us', 'uk', 'ca', 'au')),
+  country TEXT NOT NULL,
   city TEXT NOT NULL,
   address TEXT NOT NULL,
   wire_fee TEXT,
   slug TEXT UNIQUE NOT NULL,
-  guide_html TEXT NOT NULL,
+  guide_html TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

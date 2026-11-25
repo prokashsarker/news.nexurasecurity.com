@@ -66,16 +66,17 @@ export async function getPostBySlug(country, slug) {
   );
 }
 
-export async function getSwiftCodes({ country } = {}) {
+export async function getSwiftCodes({ country, limit = 500 } = {}) {
   "use cache";
-  cacheLife("days");
+  cacheLife("weeks");
 
   if (isSupabaseConfigured && supabase) {
     try {
       let query = supabase
         .from("swift_codes")
         .select("*")
-        .order("bank_name", { ascending: true });
+        .order("bank_name", { ascending: true })
+        .limit(limit);
 
       if (country) {
         query = query.eq("country", country);
@@ -96,9 +97,25 @@ export async function getSwiftCodes({ country } = {}) {
   return SEED_SWIFT_CODES;
 }
 
-export async function getSwiftBySlug(slug) {
+export async function getSwiftCountries() {
   "use cache";
   cacheLife("days");
+
+  const codes = await getSwiftCodes({ limit: 5000 });
+  const counts = {};
+  for (const item of codes) {
+    const code = (item.country || "").toLowerCase();
+    if (!code) continue;
+    counts[code] = (counts[code] || 0) + 1;
+  }
+  return Object.entries(counts)
+    .map(([code, count]) => ({ code, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export async function getSwiftBySlug(slug) {
+  "use cache";
+  cacheLife("weeks");
 
   if (isSupabaseConfigured && supabase) {
     try {
