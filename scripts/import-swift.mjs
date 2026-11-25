@@ -42,10 +42,41 @@ function mapCountrySlug(isoCode) {
   return lower === "gb" ? "uk" : lower;
 }
 
+const ACRONYMS = new Set([
+  "HSBC",
+  "RBC",
+  "BMO",
+  "TD",
+  "ANZ",
+  "NAB",
+  "UBS",
+  "ING",
+  "BNP",
+  "BBVA",
+  "DBS",
+  "OCBC",
+  "UOB",
+  "ICBC",
+  "SBI",
+  "HDFC",
+  "ICICI",
+  "LLC",
+  "PLC",
+  "USA",
+  "UK",
+  "N.A.",
+]);
+
 function toTitleCase(str) {
   return (str || "")
-    .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+    .trim()
+    .split(/\s+/)
+    .map((word) => {
+      const upper = word.toUpperCase();
+      if (ACRONYMS.has(upper)) return upper;
+      return word.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+    })
+    .join(" ");
 }
 
 async function importCountry(isoCode) {
@@ -67,8 +98,15 @@ async function importCountry(isoCode) {
     ...list.filter((b) => b.branch && !(b.swift_code || "").endsWith("XXX") && (b.swift_code || "").length !== 8),
   ];
 
-  // Deduplicate by swift_code and take PER_COUNTRY_LIMIT
-  const seen = new Set();
+  // Fetch already-imported SWIFT codes for this country to avoid duplicates/conflicts
+  const { data: existingRows } = await supabase
+    .from("swift_codes")
+    .select("swift_code")
+    .eq("country", countrySlug);
+
+  const seen = new Set(
+    (existingRows || []).map((r) => (r.swift_code || "").trim().toUpperCase())
+  );
   const batch = [];
   for (const row of prioritized) {
     if (batch.length >= PER_COUNTRY_LIMIT) break;
@@ -79,7 +117,11 @@ async function importCountry(isoCode) {
 
     const cleanBank = toTitleCase(bankName);
     const cleanCity = toTitleCase(row.city || json.country || isoCode);
-    const slug = `${slugify(cleanBank, { lower: true, strict: true }).slice(0, 45)}-${countrySlug}-${swift.toLowerCase()}`;
+    const cleanSlugPart =
+      slugify(cleanBank, { lower: true, strict: true })
+        .slice(0, 45)
+        .replace(/-+$/, "") || "bank";
+    const slug = `${cleanSlugPart}-${countrySlug}-${swift.toLowerCase()}`;
 
     batch.push({
       bank_name: cleanBank,
