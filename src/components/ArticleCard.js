@@ -27,7 +27,7 @@ export default function ArticleCard({ post, featured = false }) {
   const category = CATEGORIES[post.category] || CATEGORIES.bank_alert;
   const country = COUNTRIES[post.country] || COUNTRIES.global;
   const href = `/${post.country}/${post.slug}`;
-  const coverUrl = getPostOgImageUrl(post);
+  const coverUrl = getPostOgImageUrl(post, { compact: !featured });
 
   if (featured) {
     return (
@@ -37,6 +37,9 @@ export default function ArticleCard({ post, featured = false }) {
             <img
               src={coverUrl}
               alt={post.title}
+              width={1200}
+              height={675}
+              fetchPriority="high"
               className="w-full aspect-[16/9] object-contain"
             />
           </div>
@@ -80,6 +83,9 @@ export default function ArticleCard({ post, featured = false }) {
           <img
             src={coverUrl}
             alt={post.title}
+            width={640}
+            height={360}
+            loading="lazy"
             className="w-full h-full object-cover"
           />
         </Link>

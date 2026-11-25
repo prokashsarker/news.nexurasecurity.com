@@ -153,13 +153,16 @@ export function findMatchingPostsForSwift(swift, posts = []) {
   return [...directMatches, ...countryFallbacks].slice(0, 4);
 }
 
-export function getPostOgImageUrl(post) {
+export function getPostOgImageUrl(post, { compact = false } = {}) {
   const params = new URLSearchParams({
     title: post?.title || "Nexura Dispatch",
     category: post?.category || "bank_alert",
     entity: post?.bank_or_entity || "Nexura Research",
     country: post?.country || "global",
   });
+  if (compact) {
+    params.set("size", "card");
+  }
   return `/api/og?${params.toString()}`;
 }
 

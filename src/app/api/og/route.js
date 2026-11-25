@@ -47,21 +47,33 @@ export async function GET(request) {
   const category = searchParams.get("category") || "bank_alert";
   const entity = (searchParams.get("entity") || "Nexura Research").slice(0, 45);
   const country = (searchParams.get("country") || "GLOBAL").toUpperCase();
+  const isCard = searchParams.get("size") === "card";
+
+  const width = isCard ? 640 : 1200;
+  const height = isCard ? 360 : 675;
+  const padOuter = isCard ? 26 : 48;
+  const padInnerV = isCard ? 26 : 48;
+  const padInnerH = isCard ? 30 : 56;
+  const borderLeftW = isCard ? 8 : 14;
+  const badgeFontSize = isCard ? 11 : 18;
+  const metaFontSize = isCard ? 12 : 20;
+  const footerFontSize = isCard ? 11 : 18;
+  const baseFontSize = title.length > 78 ? 40 : title.length > 55 ? 46 : 52;
+  const fontSize = isCard ? Math.round(baseFontSize * 0.54) : baseFontSize;
 
   const theme = THEMES[category] || THEMES.bank_alert;
-  const fontSize = title.length > 78 ? 40 : title.length > 55 ? 46 : 52;
 
   return new ImageResponse(
     (
       <div
         style={{
-          width: "1200px",
-          height: "675px",
+          width: `${width}px`,
+          height: `${height}px`,
           backgroundColor: theme.bg,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "48px",
+          padding: `${padOuter}px`,
           fontFamily: "Georgia, serif",
         }}
       >
@@ -71,11 +83,11 @@ export async function GET(request) {
             height: "100%",
             backgroundColor: theme.panel,
             border: "2px solid rgba(255,255,255,0.16)",
-            borderLeft: `14px solid ${theme.accent}`,
+            borderLeft: `${borderLeftW}px solid ${theme.accent}`,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            padding: "48px 56px",
+            padding: `${padInnerV}px ${padInnerH}px`,
           }}
         >
           {/* Top Metadata Row */}
@@ -86,16 +98,16 @@ export async function GET(request) {
               justifyContent: "space-between",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: isCard ? "10px" : "16px" }}>
               <div
                 style={{
                   display: "flex",
                   backgroundColor: theme.accent,
                   color: "#FFFFFF",
-                  fontSize: "18px",
+                  fontSize: `${badgeFontSize}px`,
                   fontWeight: 700,
-                  letterSpacing: "2px",
-                  padding: "8px 18px",
+                  letterSpacing: isCard ? "1.2px" : "2px",
+                  padding: isCard ? "5px 10px" : "8px 18px",
                   fontFamily: "sans-serif",
                 }}
               >
@@ -105,7 +117,7 @@ export async function GET(request) {
                 style={{
                   display: "flex",
                   color: "#CBD5E1",
-                  fontSize: "20px",
+                  fontSize: `${metaFontSize}px`,
                   fontFamily: "monospace",
                   letterSpacing: "1px",
                 }}
@@ -136,9 +148,9 @@ export async function GET(request) {
               alignItems: "center",
               justifyContent: "space-between",
               borderTop: "1px solid rgba(255,255,255,0.15)",
-              paddingTop: "22px",
+              paddingTop: isCard ? "12px" : "22px",
               fontFamily: "monospace",
-              fontSize: "18px",
+              fontSize: `${footerFontSize}px`,
               color: "#94A3B8",
             }}
           >
@@ -149,8 +161,8 @@ export async function GET(request) {
       </div>
     ),
     {
-      width: 1200,
-      height: 675,
+      width,
+      height,
       headers: {
         "Cache-Control": "public, max-age=31536000, immutable",
       },
