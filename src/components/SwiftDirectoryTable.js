@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, X } from "lucide-react";
+import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import CopyButton from "./CopyButton";
+
+const PAGE_SIZE = 25;
 
 export default function SwiftDirectoryTable({
   codes = [],
   showCountryColumn = true,
 }) {
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   const q = query.trim().toLowerCase();
   const filtered = q
@@ -22,6 +25,16 @@ export default function SwiftDirectoryTable({
       )
     : codes;
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginated = filtered.slice(startIndex, startIndex + PAGE_SIZE);
+
+  function handleQueryChange(value) {
+    setQuery(value);
+    setPage(1);
+  }
+
   return (
     <div>
       {/* Search Bar */}
@@ -32,14 +45,14 @@ export default function SwiftDirectoryTable({
             type="text"
             aria-label="Search bank name, SWIFT/BIC code, or city"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="Search bank name, SWIFT code, or city..."
             className="w-full bg-white border border-gray-300 rounded-sm pl-9 pr-8 py-2 text-sm focus:outline-none focus:border-slate-900"
           />
           {query && (
             <button
               type="button"
-              onClick={() => setQuery("")}
+              onClick={() => handleQueryChange("")}
               aria-label="Clear search"
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 cursor-pointer"
             >
@@ -48,7 +61,9 @@ export default function SwiftDirectoryTable({
           )}
         </div>
         <p className="text-xs font-mono text-gray-600">
-          Showing {filtered.length} of {codes.length} institutions
+          {filtered.length === 0
+            ? "0 results"
+            : `Showing ${startIndex + 1}–${Math.min(startIndex + PAGE_SIZE, filtered.length)} of ${filtered.length} institutions`}
         </p>
       </div>
 
@@ -74,7 +89,7 @@ export default function SwiftDirectoryTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-sm">
-            {filtered.length === 0 ? (
+            {paginated.length === 0 ? (
               <tr>
                 <td
                   colSpan={6}
@@ -84,7 +99,7 @@ export default function SwiftDirectoryTable({
                 </td>
               </tr>
             ) : (
-              filtered.map((item) => (
+              paginated.map((item) => (
                 <tr
                   key={item.slug}
                   className="hover:bg-gray-50 transition-colors"
@@ -140,6 +155,36 @@ export default function SwiftDirectoryTable({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <nav
+          aria-label="SWIFT directory pagination"
+          className="mt-5 flex items-center justify-between gap-4 text-xs"
+        >
+          <button
+            type="button"
+            disabled={currentPage <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none rounded-sm font-medium text-gray-800 cursor-pointer"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" /> Previous
+          </button>
+
+          <span className="font-mono text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            type="button"
+            disabled={currentPage >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            className="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none rounded-sm font-medium text-gray-800 cursor-pointer"
+          >
+            Next <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </nav>
+      )}
     </div>
   );
 }
