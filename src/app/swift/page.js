@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getSwiftCodes, getSwiftCountries } from "@/lib/data";
 import { getCountryDisplayName } from "@/lib/seed-data";
-import CopyButton from "@/components/CopyButton";
+import SwiftDirectoryTable from "@/components/SwiftDirectoryTable";
 import AdSlot from "@/components/AdSlot";
 
 export const metadata = {
@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function SwiftDirectoryPage() {
   const [codes, countries] = await Promise.all([
-    getSwiftCodes({ limit: 250 }),
+    getSwiftCodes({ limit: 500 }),
     getSwiftCountries(),
   ]);
 
@@ -56,63 +56,7 @@ export default async function SwiftDirectoryPage() {
 
       <AdSlot className="mb-8" />
 
-      <div className="bg-white border border-gray-200 rounded-sm overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-gray-200 bg-[#f7f6f2] text-xs font-mono uppercase tracking-wider text-gray-600">
-              <th className="py-3.5 px-4">Bank</th>
-              <th className="py-3.5 px-4">Country</th>
-              <th className="py-3.5 px-4">SWIFT / BIC</th>
-              <th className="py-3.5 px-4 hidden md:table-cell">Routing / Local ID</th>
-              <th className="py-3.5 px-4 hidden lg:table-cell">Typical Wire Fee</th>
-              <th className="py-3.5 px-4 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 text-sm">
-            {codes.map((item) => (
-              <tr key={item.slug} className="hover:bg-gray-50 transition-colors">
-                <td className="py-3.5 px-4">
-                  <Link
-                    href={`/swift/${item.slug}`}
-                    className="font-semibold text-gray-950 hover:underline"
-                  >
-                    {item.bank_name}
-                  </Link>
-                  <div className="text-xs text-gray-600">{item.city}</div>
-                </td>
-                <td className="py-3.5 px-4 font-mono text-xs uppercase text-gray-600">
-                  <Link
-                    href={`/swift/country/${item.country}`}
-                    className="hover:underline"
-                  >
-                    {item.country}
-                  </Link>
-                </td>
-                <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
-                  {item.swift_code}
-                </td>
-                <td className="py-3.5 px-4 font-mono text-xs text-gray-600 hidden md:table-cell">
-                  {item.routing_number || "—"}
-                </td>
-                <td className="py-3.5 px-4 text-xs text-gray-600 hidden lg:table-cell">
-                  {item.wire_fee || "Varies by tier"}
-                </td>
-                <td className="py-3.5 px-4 text-right">
-                  <div className="inline-flex items-center gap-2">
-                    <CopyButton text={item.swift_code} label="Copy" />
-                    <Link
-                      href={`/swift/${item.slug}`}
-                      className="text-xs font-medium text-slate-700 hover:text-slate-950 px-2 py-1"
-                    >
-                      Guide &rarr;
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <SwiftDirectoryTable codes={codes} showCountryColumn={true} />
     </main>
   );
 }
