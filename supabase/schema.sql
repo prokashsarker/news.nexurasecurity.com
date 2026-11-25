@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS posts (
   content_html TEXT NOT NULL,
   source_url TEXT UNIQUE NOT NULL,
   source_name TEXT DEFAULT 'Official Notice',
-  image_url TEXT DEFAULT '/images/bank-alert.svg',
+  image_url TEXT DEFAULT '/images/bank-alert.png',
   read_time TEXT DEFAULT '4 min read',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

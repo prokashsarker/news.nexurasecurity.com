@@ -27,11 +27,11 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const MAX_POSTS_PER_RUN = 3;
 
 const CATEGORY_IMAGES = {
-  bank_alert: "/images/bank-alert.svg",
-  data_breach: "/images/data-breach.svg",
-  settlement: "/images/settlement.svg",
-  insurance: "/images/insurance.svg",
-  saas: "/images/saas.svg",
+  bank_alert: "/images/bank-alert.png",
+  data_breach: "/images/data-breach.png",
+  settlement: "/images/settlement.png",
+  insurance: "/images/insurance.png",
+  saas: "/images/saas.png",
 };
 
 // Rich official/editorial RSS feeds + targeted Google News feeds
@@ -240,7 +240,7 @@ async function runBot() {
           source_url: item.link,
           source_name: article.source_name || source.label,
           image_url:
-            CATEGORY_IMAGES[source.category] || "/images/bank-alert.svg",
+            CATEGORY_IMAGES[source.category] || "/images/bank-alert.png",
           read_time: readTime,
         });
 

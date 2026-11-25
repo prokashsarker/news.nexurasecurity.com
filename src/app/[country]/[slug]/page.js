@@ -19,6 +19,16 @@ export async function generateMetadata({ params }) {
   const { country, slug } = await params;
   const post = await getPostBySlug(country, slug);
   if (!post) return {};
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://news.nexurasecurity.com";
+  const imagePath = (post.image_url || "/images/bank-alert.png").replace(
+    /\.svg$/i,
+    ".png"
+  );
+  const absoluteImageUrl = imagePath.startsWith("http")
+    ? imagePath
+    : `${siteUrl}${imagePath}`;
+
   return {
     title: post.title,
     description: post.summary,
@@ -27,6 +37,20 @@ export async function generateMetadata({ params }) {
       description: post.summary,
       type: "article",
       publishedTime: post.created_at,
+      images: [
+        {
+          url: absoluteImageUrl,
+          width: 1200,
+          height: 675,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.summary,
+      images: [absoluteImageUrl],
     },
   };
 }
@@ -59,11 +83,22 @@ async function ArticleDetailContent({ params }) {
 
   const takeaways = Array.isArray(post.key_takeaways) ? post.key_takeaways : [];
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://news.nexurasecurity.com";
+  const imagePath = (post.image_url || "/images/bank-alert.png").replace(
+    /\.svg$/i,
+    ".png"
+  );
+  const absoluteImageUrl = imagePath.startsWith("http")
+    ? imagePath
+    : `${siteUrl}${imagePath}`;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     headline: post.title,
     description: post.summary,
+    image: [absoluteImageUrl],
     datePublished: post.created_at,
     dateModified: post.created_at,
     author: {
@@ -73,7 +108,11 @@ async function ArticleDetailContent({ params }) {
     publisher: {
       "@type": "Organization",
       name: "Nexura Dispatch",
-      url: "https://news.nexurasecurity.com",
+      url: siteUrl,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/logo.png`,
+      },
     },
   };
 
