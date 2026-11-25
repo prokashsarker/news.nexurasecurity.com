@@ -203,6 +203,11 @@ Strict Editorial & Anti-AI Rules:
 }
 
 async function runBot() {
+  const extraArg = process.argv.find((a) => a.startsWith("--extra="));
+  const extraCount = extraArg
+    ? Math.max(0, parseInt(extraArg.replace("--extra=", ""), 10) || 0)
+    : 0;
+
   // Check how many posts were already published today (UTC) so backup cron runs never exceed 3/day
   const startOfUtcDay = new Date();
   startOfUtcDay.setUTCHours(0, 0, 0, 0);
@@ -211,7 +216,9 @@ async function runBot() {
     .select("id", { count: "exact", head: true })
     .gte("created_at", startOfUtcDay.toISOString());
 
-  if (!countError && (todayCount ?? 0) >= MAX_POSTS_PER_RUN) {
+  const runLimit = extraCount > 0 ? (todayCount ?? 0) + extraCount : MAX_POSTS_PER_RUN;
+
+  if (!countError && (todayCount ?? 0) >= runLimit) {
     console.log(
       `Daily limit (${MAX_POSTS_PER_RUN} posts) already reached today (${todayCount}). Skipping run.`
     );
@@ -221,21 +228,21 @@ async function runBot() {
   let publishedCount = todayCount ?? 0;
 
   // Rotate sources daily so all niches get balanced coverage
-  const dayOffset = new Date().getUTCDate() % SOURCES.length;
+  const dayOffset = extraCount > 0 ? 0 : new Date().getUTCDate() % SOURCES.length;
   const orderedSources = [
     ...SOURCES.slice(dayOffset),
     ...SOURCES.slice(0, dayOffset),
   ];
 
   for (const source of orderedSources) {
-    if (publishedCount >= MAX_POSTS_PER_RUN) break;
+    if (publishedCount >= runLimit) break;
 
     try {
       const feed = await parser.parseURL(source.url);
       const candidates = (feed.items || []).slice(0, 4);
 
       for (const item of candidates) {
-        if (publishedCount >= MAX_POSTS_PER_RUN) break;
+        if (publishedCount >= runLimit) break;
         if (!item.link || !item.title) continue;
 
         // Check if already published
