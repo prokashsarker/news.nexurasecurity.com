@@ -7,6 +7,7 @@ import {
   CATEGORIES,
   COUNTRIES,
   findMatchingSwiftForPost,
+  getPostOgImageUrl,
 } from "@/lib/seed-data";
 import { DESK_BYLINES, formatDispatchDate } from "@/components/ArticleCard";
 import AdSlot from "@/components/AdSlot";
@@ -25,13 +26,7 @@ export async function generateMetadata({ params }) {
   if (!post) return {};
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://news.nexurasecurity.com";
-  const imagePath = (post.image_url || "/images/bank-alert.png").replace(
-    /\.svg$/i,
-    ".png"
-  );
-  const absoluteImageUrl = imagePath.startsWith("http")
-    ? imagePath
-    : `${siteUrl}${imagePath}`;
+  const absoluteImageUrl = `${siteUrl}${getPostOgImageUrl(post)}`;
 
   return {
     title: post.title,
@@ -92,13 +87,8 @@ async function ArticleDetailContent({ params }) {
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://news.nexurasecurity.com";
-  const imagePath = (post.image_url || "/images/bank-alert.png").replace(
-    /\.svg$/i,
-    ".png"
-  );
-  const absoluteImageUrl = imagePath.startsWith("http")
-    ? imagePath
-    : `${siteUrl}${imagePath}`;
+  const ogImagePath = getPostOgImageUrl(post);
+  const absoluteImageUrl = `${siteUrl}${ogImagePath}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -178,15 +168,13 @@ async function ArticleDetailContent({ params }) {
           </div>
 
           {/* Editorial Graphic */}
-          {post.image_url && (
-            <div className="my-6 border border-gray-200 rounded-sm overflow-hidden bg-slate-900">
-              <img
-                src={post.image_url}
-                alt={post.title}
-                className="w-full h-auto max-h-[340px] object-cover"
-              />
-            </div>
-          )}
+          <div className="my-6 border border-gray-200 rounded-sm overflow-hidden bg-slate-900">
+            <img
+              src={ogImagePath}
+              alt={post.title}
+              className="w-full h-auto max-h-[360px] object-cover"
+            />
+          </div>
 
           {/* Key Takeaways Box */}
           {takeaways.length > 0 && (

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORIES, COUNTRIES } from "@/lib/seed-data";
+import { CATEGORIES, COUNTRIES, getPostOgImageUrl } from "@/lib/seed-data";
 
 export const DESK_BYLINES = {
   bank_alert: "Retail Banking Desk",
@@ -27,6 +27,7 @@ export default function ArticleCard({ post, featured = false }) {
   const category = CATEGORIES[post.category] || CATEGORIES.bank_alert;
   const country = COUNTRIES[post.country] || COUNTRIES.global;
   const href = `/${post.country}/${post.slug}`;
+  const coverUrl = getPostOgImageUrl(post);
 
   if (featured) {
     return (
@@ -34,7 +35,7 @@ export default function ArticleCard({ post, featured = false }) {
         <div className="grid md:grid-cols-12">
           <div className="md:col-span-5 bg-slate-900 relative min-h-[220px]">
             <img
-              src={post.image_url || "/images/bank-alert.png"}
+              src={coverUrl}
               alt={post.title}
               className="w-full h-full object-cover"
             />
@@ -77,7 +78,7 @@ export default function ArticleCard({ post, featured = false }) {
       <div>
         <Link href={href} className="block bg-slate-900 aspect-[16/9] overflow-hidden border-b border-gray-100">
           <img
-            src={post.image_url || "/images/bank-alert.png"}
+            src={coverUrl}
             alt={post.title}
             className="w-full h-full object-cover"
           />
