@@ -2,7 +2,8 @@ name: Daily 3 Dispatches Bot
 
 on:
   schedule:
-    - cron: '0 12 * * *' # Runs daily at 12:00 UTC (6:00 PM BST)
+    - cron: '23 13 * * *' # Primary: 13:23 UTC (8:23 AM EST / 7:23 PM BST)
+    - cron: '41 19 * * *' # Backup:  19:41 UTC (if GitHub skips primary)
   workflow_dispatch:
 
 jobs:

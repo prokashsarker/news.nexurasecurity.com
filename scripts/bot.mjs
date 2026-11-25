@@ -177,7 +177,22 @@ Strict Editorial & Anti-AI Rules:
 }
 
 async function runBot() {
-  let publishedCount = 0;
+  // Check how many posts were already published today (UTC) so backup cron runs never exceed 3/day
+  const startOfUtcDay = new Date();
+  startOfUtcDay.setUTCHours(0, 0, 0, 0);
+  const { count: todayCount, error: countError } = await supabase
+    .from("posts")
+    .select("id", { count: "exact", head: true })
+    .gte("created_at", startOfUtcDay.toISOString());
+
+  if (!countError && (todayCount ?? 0) >= MAX_POSTS_PER_RUN) {
+    console.log(
+      `Daily limit (${MAX_POSTS_PER_RUN} posts) already reached today (${todayCount}). Skipping run.`
+    );
+    return;
+  }
+
+  let publishedCount = todayCount ?? 0;
 
   // Rotate sources daily so all niches get balanced coverage
   const dayOffset = new Date().getUTCDate() % SOURCES.length;
