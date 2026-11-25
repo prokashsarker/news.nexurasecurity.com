@@ -47,10 +47,12 @@ Tables in `public` schema:
   - Manual trigger: `workflow_dispatch`
 - **Daily Cap Guard:** At startup, `runBot()` counts rows in `posts` created since `00:00:00 UTC` of the current day. Once `MAX_POSTS_PER_RUN` (`3`) is reached, backup runs exit immediately without duplicate posting.
 - **Models & JSON Mode:** Uses `MODEL_CANDIDATES` (`gemini-3.5-flash`, `gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.5-flash-lite`) with `responseMimeType: "application/json"` and `temperature: 0.4`.
-- **Editorial & Anti-AI Rules:**
+- **Manual Extra Posts:** Run `node --env-file=.env.local scripts/bot.mjs --extra=2` to publish extra posts on demand without bypassing normal daily cron caps.
+- **Categories & Rich Feeds:** Covers `bank_alert`, `data_breach` (BleepingComputer, CISA, The Hacker News, SecurityWeek), `web_security` (Wordfence, Patchstack), `settlement` (Top Class Actions), `insurance`, and `saas`.
+- **Editorial & AdSense Safety Rules:**
   - Enforces zero fabrication, varied sentence rhythm, active voice, and bans common AI clichés.
-  - Filters out off-topic items (`{"skip": true}`).
-  - Assigns category-specific `1200x675` PNG cover images (`/images/bank-alert.png`, `/images/data-breach.png`, `/images/settlement.png`, `/images/insurance.png`, `/images/saas.png`) and beat desk bylines (`DESK_BYLINES` in `src/components/ArticleCard.js`).
+  - Strict AdSense anti-exploit guard: never includes exploit code, attack payloads, shell commands, or how-to-hack instructions; focuses strictly on factual incident reporting and defensive mitigation.
+  - Filters out off-topic items (`{"skip": true}`) and assigns beat desk bylines (`DESK_BYLINES` in `src/components/ArticleCard.js`).
 
 ---
 
@@ -62,13 +64,15 @@ Tables in `public` schema:
   ```bash
   node --env-file=.env.local scripts/import-swift.mjs --countries=DE,FR,NL,CH,SG,AE,IN,BD --limit=100
   ```
-- **Country Hubs:** `/swift` and `/swift/country/[country]` (supports both 2-letter codes like `/us` and full-name aliases like `/united-states` via `resolveCountryCode` in `src/lib/seed-data.js`).
+- **Country Hubs & Directory UI:** `/swift` and `/swift/country/[country]` (supports both 2-letter codes like `/us` and full-name aliases like `/united-states` via `resolveCountryCode` in `src/lib/seed-data.js`), powered by `SwiftDirectoryTable.js` with instant search and 25-per-page pagination.
+- **Bidirectional Internal Linking:** `findMatchingSwiftForPost` and `findMatchingPostsForSwift` (`src/lib/seed-data.js`) automatically cross-link news articles (`src/app/[country]/[slug]/page.js`) and SWIFT pages (`src/app/swift/[slug]/page.js`).
 
 ---
 
 ## 6. SEO, Google Discover, AdSense & Accessibility
 
-- **Google Discover:** `1200x675` PNG images, `max-image-preview: "large"` in `src/app/layout.js`, `openGraph.images` + `twitter.images` + `NewsArticle` JSON-LD (`image`, `datePublished`, `author`, `publisher.logo`) in `src/app/[country]/[slug]/page.js`.
+- **Dynamic `1200x675` Covers (`/api/og`):** `src/app/api/og/route.js` generates a unique, cached (`immutable`) `1200x675` PNG cover per article using its headline, entity, country, and category theme (`getPostOgImageUrl` in `src/lib/seed-data.js`).
+- **Google Discover & Webmasters:** `max-image-preview: "large"` + Bing `msvalidate.01` verification in `src/app/layout.js`, `openGraph.images` + `twitter.images` + `NewsArticle` JSON-LD (`image`, `datePublished`, `author`, `publisher.logo`) in `src/app/[country]/[slug]/page.js`.
 - **Favicons:** `48x48` (`public/icon-48.png`) and `192x192` (`public/icon-192.png`, `src/app/icon.png`) square PNGs + `WebSite` JSON-LD in `src/app/layout.js`.
 - **Sitemaps & Discovery:** `/sitemap.xml` (`src/app/sitemap.js`), `/robots.txt` (`src/app/robots.txt`), `public/.well-known/ai-catalog.json`, `public/ai-catalog.json`.
 - **AdSense Readiness:** `/about`, `/contact`, `/privacy-policy`, `/disclaimer`, `public/ads.txt`, and `src/components/AdSlot.js`.
