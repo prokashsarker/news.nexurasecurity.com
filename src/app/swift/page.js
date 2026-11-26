@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function SwiftDirectoryPage() {
   const [codes, countries] = await Promise.all([
-    getSwiftCodes({ limit: 500 }),
+    getSwiftCodes({ limit: 2000 }),
     getSwiftCountries(),
   ]);
 

@@ -66,9 +66,9 @@ export async function getPostBySlug(country, slug) {
   );
 }
 
-export async function getSwiftCodes({ country, limit = 500 } = {}) {
+export async function getSwiftCodes({ country, limit = 2000 } = {}) {
   "use cache";
-  cacheLife("weeks");
+  cacheLife("minutes");
 
   if (isSupabaseConfigured && supabase) {
     try {
@@ -99,7 +99,7 @@ export async function getSwiftCodes({ country, limit = 500 } = {}) {
 
 export async function getSwiftCountries() {
   "use cache";
-  cacheLife("days");
+  cacheLife("minutes");
 
   const codes = await getSwiftCodes({ limit: 5000 });
   const counts = {};
@@ -115,7 +115,7 @@ export async function getSwiftCountries() {
 
 export async function getSwiftBySlug(slug) {
   "use cache";
-  cacheLife("weeks");
+  cacheLife("hours");
 
   if (isSupabaseConfigured && supabase) {
     try {
