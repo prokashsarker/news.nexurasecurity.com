@@ -63,6 +63,21 @@ export default async function SwiftDetailPage({ params }) {
   );
 }
 
+function formatCityName(city) {
+  return (city || "").replace(/,([A-Za-z]{2})\b/g, (_, st) => `, ${st.toUpperCase()}`).trim();
+}
+
+function isRealStreetAddress(address, city) {
+  if (!address) return false;
+  const cleanAddr = address.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const cleanCity = (city || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (!cleanAddr || cleanAddr === cleanCity) return false;
+  if (cleanCity && cleanAddr.startsWith(cleanCity) && cleanAddr.length - cleanCity.length < 18) {
+    return false;
+  }
+  return true;
+}
+
 async function SwiftDetailContent({ params }) {
   const { slug } = await params;
   const [data, recentPosts] = await Promise.all([
@@ -72,6 +87,11 @@ async function SwiftDetailContent({ params }) {
   if (!data) return notFound();
 
   const countryName = getCountryDisplayName(data.country);
+  const displayCity = formatCityName(data.city);
+  const hasStreetAddress = isRealStreetAddress(data.address, data.city);
+  const isHeadOffice =
+    (data.swift_code || "").length === 8 ||
+    (data.swift_code || "").toUpperCase().endsWith("XXX");
   const guideHtml = data.guide_html || buildDynamicGuideHtml(data, countryName);
   const relatedNews = findMatchingPostsForSwift(data, recentPosts);
 
@@ -128,13 +148,21 @@ async function SwiftDetailContent({ params }) {
           <div className="flex flex-wrap items-center justify-between border-b border-gray-200 pb-3 gap-2">
             <span className="text-gray-600 font-medium">City &amp; Country</span>
             <span className="text-gray-900">
-              {data.city}, {countryName}
+              {displayCity}, {countryName}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center justify-between border-b border-gray-200 pb-3 gap-2">
-            <span className="text-gray-600 font-medium">Address / Branch</span>
-            <span className="text-gray-900 text-right">{data.address}</span>
+            <span className="text-gray-600 font-medium">
+              {hasStreetAddress ? "Head Office Address" : "Office Type"}
+            </span>
+            <span className="text-gray-900 text-right">
+              {hasStreetAddress
+                ? data.address
+                : isHeadOffice
+                  ? "Primary / Head Office"
+                  : "Registered Branch Office"}
+            </span>
           </div>
 
           {data.wire_fee && (
