@@ -1,8 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
 /**
- * Enrich bulk-imported SWIFT records in Supabase with official street addresses
- * from the free GLEIF Legal Entity Identifier (LEI) Public API using 11-char BIC lookup.
+ * Enrich bulk-imported SWIFT records in Supabase with verified street addresses:
+ *   1. GLEIF Public API by 11-char BIC (exact match)
+ *   2. FDIC BankFind API by bank name + state/city (for US banks)
+ *   3. GLEIF Public API by legal entity name + country (fallback)
  *
  * Usage:
  *   node --env-file=.env.local scripts/enrich-swift-addresses.mjs
@@ -34,7 +36,18 @@ function formatGleifAddress(hq) {
   return [street, cityLine, hq.country].filter(Boolean).join(", ");
 }
 
-async function lookupByBic(swiftCode) {
+function isAlreadyEnriched(address, city) {
+  if (!address) return false;
+  const cleanAddr = address.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const cleanCity = (city || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (!cleanAddr || cleanAddr === cleanCity) return false;
+  if (cleanCity && cleanAddr.startsWith(cleanCity) && cleanAddr.length - cleanCity.length < 18) {
+    return false;
+  }
+  return true;
+}
+
+async function lookupGleifByBic(swiftCode) {
   const code = (swiftCode || "").trim().toUpperCase();
   if (!code) return null;
   const bic11 = code.length === 8 ? `${code}XXX` : code;
@@ -53,10 +66,74 @@ async function lookupByBic(swiftCode) {
   }
 }
 
+async function lookupFdicUsBank(bankName, city) {
+  const cleanName = (bankName || "")
+    .replace(/,?\s*(N\.?A\.?|LLC|INC\.?|CORP\.?|CORPORATION)$/i, "")
+    .trim();
+  if (!cleanName) return null;
+
+  try {
+    const res = await fetch(
+      `https://banks.data.fdic.gov/api/institutions?search=${encodeURIComponent(cleanName)}&fields=NAME,ADDRESS,CITY,STALP,ZIP&limit=5`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    const items = (json?.data || []).map((d) => d.data).filter(Boolean);
+    if (items.length === 0) return null;
+
+    const cityFirstWord = (city || "").split(",")[0].trim().toLowerCase();
+    const exact =
+      items.find(
+        (it) =>
+          it.CITY &&
+          cityFirstWord &&
+          it.CITY.toLowerCase() === cityFirstWord &&
+          it.NAME?.toLowerCase().includes(cleanName.split(" ")[0].toLowerCase())
+      ) ||
+      items.find((it) =>
+        it.NAME?.toLowerCase().startsWith(cleanName.slice(0, 10).toLowerCase())
+      );
+
+    if (!exact || !exact.ADDRESS) return null;
+    return [exact.ADDRESS, exact.CITY, exact.STALP, exact.ZIP, "US"]
+      .filter(Boolean)
+      .join(", ");
+  } catch {
+    return null;
+  }
+}
+
+async function lookupGleifByName(bankName, countrySlug) {
+  const iso = countrySlug === "uk" ? "GB" : (countrySlug || "").toUpperCase();
+  const cleanName = (bankName || "")
+    .replace(/\(.*?\)/g, "")
+    .replace(/,?\s*(LLC|PLC|LTD\.?|LIMITED|INC\.?|N\.?A\.?)$/i, "")
+    .trim();
+  if (cleanName.length < 4) return null;
+
+  try {
+    const res = await fetch(
+      `https://api.gleif.org/api/v1/lei-records?filter[entity.names]=${encodeURIComponent(cleanName)}&filter[entity.legalAddress.country]=${encodeURIComponent(iso)}&page[size]=3`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    const match = (json?.data || []).find((rec) => {
+      const legalName = rec?.attributes?.entity?.legalName?.name || "";
+      return legalName.toLowerCase().includes(cleanName.split(" ")[0].toLowerCase());
+    });
+    const hq = match?.attributes?.entity?.headquartersAddress;
+    return formatGleifAddress(hq);
+  } catch {
+    return null;
+  }
+}
+
 async function main() {
   const { data: rows, error } = await supabase
     .from("swift_codes")
-    .select("id, bank_name, swift_code, address")
+    .select("id, bank_name, swift_code, country, city, address")
     .is("guide_html", null)
     .limit(500);
 
@@ -65,14 +142,25 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Checking ${rows.length} SWIFT records against GLEIF API...`);
+  const remaining = rows.filter((r) => !isAlreadyEnriched(r.address, r.city));
+  console.log(
+    `Total null-guide: ${rows.length} | Already enriched: ${rows.length - remaining.length} | Checking remaining: ${remaining.length}`
+  );
+
   let updated = 0;
 
-  for (let i = 0; i < rows.length; i += 5) {
-    const chunk = rows.slice(i, i + 5);
+  for (let i = 0; i < remaining.length; i += 4) {
+    const chunk = remaining.slice(i, i + 4);
     await Promise.all(
       chunk.map(async (row) => {
-        const verifiedAddr = await lookupByBic(row.swift_code);
+        let verifiedAddr = await lookupGleifByBic(row.swift_code);
+        if (!verifiedAddr && row.country === "us") {
+          verifiedAddr = await lookupFdicUsBank(row.bank_name, row.city);
+        }
+        if (!verifiedAddr) {
+          verifiedAddr = await lookupGleifByName(row.bank_name, row.country);
+        }
+
         if (verifiedAddr && verifiedAddr !== row.address) {
           const { error: upErr } = await supabase
             .from("swift_codes")
@@ -85,10 +173,10 @@ async function main() {
         }
       })
     );
-    await sleep(250);
+    await sleep(300);
   }
 
-  console.log(`Done. Updated ${updated} of ${rows.length} records with verified GLEIF street addresses.`);
+  console.log(`Done. Newly enriched ${updated} more records.`);
 }
 
 main();
