@@ -25,7 +25,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 const MAX_POSTS_PER_RUN = 3;
-const INDEXNOW_KEY = "ece7c0b170374ce5842381bf986477f8";
+const INDEXNOW_KEY = "ce1927b3a29d4754831ac58be5000578";
 const SITE_HOST = "news.nexurasecurity.com";
 
 async function pingIndexNow(urls) {
